@@ -13,7 +13,7 @@ Depends:
   FLCore,
   ggplotFL,
   data.table,
-  FLash,
+  FLasher,
   FLBRP
 Imports:
   foreach,

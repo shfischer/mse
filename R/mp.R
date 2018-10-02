@@ -9,14 +9,14 @@
 
 # mp {{{
 
-mp <- function(opModel, obsModel=FLoem(), impModel="missing", ctrl.mp, genArgs, 
+mp <- function(om, oem=FLoem(), impModel="missing", ctrl.mp, genArgs, 
   scenario="test", tracking="missing"){
 
 	#============================================================
 	# prepare the om
-	stk.om <- stock(opModel)	
+	stk.om <- stock(om)	
 	name(stk.om) <- scenario
-	sr.om <- sr(opModel)
+	sr.om <- sr(om)
 	sr.om.res <- residuals(sr.om)
 	sr.om.res.mult <- sr.om@logerror
 	fy <- genArgs$fy # final year
@@ -61,10 +61,10 @@ mp <- function(opModel, obsModel=FLoem(), impModel="missing", ctrl.mp, genArgs,
 		# OEM
 		#----------------------------------------------------------
 		# function o()
-		ctrl.oem <- args(obsModel)
-		ctrl.oem$method <- method(obsModel)
-		ctrl.oem$deviances <- deviances(obsModel)
-		ctrl.oem$observations <- observations(obsModel)
+		ctrl.oem <- args(oem)
+		ctrl.oem$method <- method(oem)
+		ctrl.oem$deviances <- deviances(oem)
+		ctrl.oem$observations <- observations(oem)
 		ctrl.oem$stk <- stk.om
 		ctrl.oem$vy0 <- vy0
 		ctrl.oem$ay <- ay
@@ -73,7 +73,7 @@ mp <- function(opModel, obsModel=FLoem(), impModel="missing", ctrl.mp, genArgs,
 		o.out <- do.call("mpDispatch", ctrl.oem)
 		stk0 <- o.out$stk
 		idx0 <- o.out$idx
-		observations(obsModel) <- o.out$observations
+		observations(oem) <- o.out$observations
 		tracking <- o.out$tracking
 
 		#==========================================================
@@ -130,7 +130,7 @@ mp <- function(opModel, obsModel=FLoem(), impModel="missing", ctrl.mp, genArgs,
 		} else {
 			ctrl <- getCtrl(yearMeans(fbar(stk0)[,sqy]), "f", ay+1, it)
 		}
-		tracking["F.hcr", ac(ay)] <- ctrl@trgtArray[ac(ay+1),"val",]
+		tracking["F.hcr", ac(ay)] <- ctrl[ac(ay+1),]$value
 		
 		#----------------------------------------------------------
 		# Implementation system
@@ -146,7 +146,7 @@ mp <- function(opModel, obsModel=FLoem(), impModel="missing", ctrl.mp, genArgs,
 			out <- do.call("mpDispatch", ctrl.is)
 			ctrl <- out$ctrl
 			tracking <- out$tracking
-			tracking["metric.is", ac(ay)] <- ctrl@trgtArray[ac(ay+1),"val",]
+		  tracking["metric.is", ac(ay)] <- ctrl[ac(ay+1),]$value
 		} else {
 			tracking["metric.is", ac(ay)] <- tracking["F.hcr", ac(ay+1)]
 		}
@@ -179,16 +179,16 @@ mp <- function(opModel, obsModel=FLoem(), impModel="missing", ctrl.mp, genArgs,
 			ctrl <- out$ctrl
 			tracking <- out$tracking
 		}
-		tracking["metric.iem",ac(ay)] <- ctrl@trgtArray[,"val",]
+		tracking["metric.iem", ac(ay)] <- ctrl[ac(ay+1),]$value
 
 		#==========================================================
 		# OM
 		#----------------------------------------------------------
 		# fleet dynamics/behaviour
 		# function j()
-		if (exists(fleetBehaviour(opModel))){
-			ctrl.fb <- args(fleetBehaviour(opModel))
-			ctrl.fb$method <- method(fleetBehaviour(opModel))
+		if (exists(fleetBehaviour(om))){
+			ctrl.fb <- args(fleetBehaviour(om))
+			ctrl.fb$method <- method(fleetBehaviour(om))
 			ctrl.fb$tracking <- tracking
 			ctrl.fb$ctrl <- ctrl
 			ctrl.fb$ioval <- list(iv=list(t1=flfval), ov=list(t1=flfval))
@@ -197,19 +197,20 @@ mp <- function(opModel, obsModel=FLoem(), impModel="missing", ctrl.mp, genArgs,
 			tracking <- out$tracking
 		}
 	    # TODO value()
-		tracking["metric.fb",ac(ay)] <- ctrl@trgtArray[,"val",]
+		tracking["metric.fb", ac(ay)] <- ctrl[ac(ay+1),]$value
 
 		#----------------------------------------------------------
 		# stock dynamics and OM projections
 		# function g()
 		if(!is.null(attr(ctrl, "snew"))) harvest(stk.om)[,ac(ay+1)] <- attr(ctrl, "snew")
-		stk.om <- fwd(stk.om, ctrl=ctrl, sr=sr.om, sr.residuals = sr.om.res, sr.residuals.mult = sr.om.res.mult, maxF=2)
+
+		stk.om <- fwd(stk.om, control=ctrl, sr=sr.om, deviances = sr.om.res, effort_max=3)
 
 	}
     cat("\n")
 
 	#============================================================
-    mp <- as(opModel, "FLmse")
+    mp <- as(om, "FLmse")
     stock(mp) <- stk.om
     tracking(mp) <- tracking
     genArgs(mp) <- genArgs

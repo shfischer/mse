@@ -38,14 +38,17 @@ tac.is <- function(stk, ctrl, ay, nsqy=3, delta_tac_max=NA, delta_tac_min=NA, tr
 	# Number of intermediate years (between last data year and ay+1)
 	ninter_yrs <- ay - last_data_yr
 	# Control object for the STF
-	ctrl <- getCtrl(c(rep(fsq0, times=ninter_yrs), ctrl@trgtArray[,"val",]), "f", (last_data_yr+1):(ay+1), dim(stock.n(stk))[6])
+
+  ctrl <- fwdControl(value=c(rep(c(fsq0), times=ninter_yrs), ctrl$value),
+    quant="f", year=(last_data_yr+1):(ay+1))
+
 	# Number of projection years
 	nproj_yrs <- (ay+1) - last_data_yr
 	stkTmp <- stf(stk, nproj_yrs, wts.nyears=nsqy)
 	# Set geomean sr relationship
 	gmean_rec <- c(exp(yearMeans(log(rec(stk)[,ac(sqy)]))))
 	# Project!
-	stkTmp <- fwd(stkTmp, ctrl=ctrl, sr=list(model="mean", params = FLPar(gmean_rec,iter=it)))
+	stkTmp <- fwd(stkTmp, control=ctrl, sr=list(model="mean", params = FLPar(gmean_rec,iter=it)))
 	# Get TAC for following year that results from hitting the F in STF
 	TAC <- catch(stkTmp)[,ac(ay+1)]
 	# catch stabelizers
