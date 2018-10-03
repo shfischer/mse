@@ -10,7 +10,5 @@
 
 
 getCtrl <- function(values, quant, years, it, rel.years = NA) {
-
-  fwdControl(list(year = years, quant=quant, value = values, rel.year=rel.years))
-
+  fwdControl(list(year = years, quant=quant, value = values, relYear=rel.years))
 }

@@ -9,22 +9,21 @@
 
 # mp {{{
 
-mp <- function(om, oem=FLoem(), impModel="missing", ctrl.mp, genArgs, 
+mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs, 
   scenario="test", tracking="missing"){
 
-	#============================================================
-	# prepare the om
+	# PREPARE the om
 	stk.om <- stock(om)	
 	name(stk.om) <- scenario
 	sr.om <- sr(om)
 	sr.om.res <- residuals(sr.om)
-	sr.om.res.mult <- sr.om@logerror
+
+  # VARIABLES
 	fy <- genArgs$fy # final year
 	y0 <- genArgs$y0 # initial data year
 	dy <- genArgs$dy # final data year
 	iy <- genArgs$iy # initial year of projection (also intermediate)
 	nsqy <- genArgs$nsqy # number of years to compute status quo metrics
-	ny <- fy - iy + 1 # number of years to project from intial year
 	vy <- ac(iy:fy) # vector of years to be projected
 
 	# init tracking
@@ -48,6 +47,7 @@ mp <- function(om, oem=FLoem(), impModel="missing", ctrl.mp, genArgs,
 	for(i in vy[-length(vy)]) {
 
 		gc()
+
 		ay <- an(i)
 		cat(i, " > ")
 		vy0 <- 1:(ay-y0) # data years (positions vector) - one less than current year
@@ -169,9 +169,9 @@ mp <- function(om, oem=FLoem(), impModel="missing", ctrl.mp, genArgs,
 		#==========================================================
 		# IEM
 		#----------------------------------------------------------
-		if(!missing(impModel)){
-			ctrl.iem <- args(impModel)
-			ctrl.iem$method <- method(impModel)
+		if(!missing(iem)){
+			ctrl.iem <- args(iem)
+			ctrl.iem$method <- method(iem)
 			ctrl.iem$ctrl <- ctrl
 			ctrl.iem$tracking <- tracking
 			ctrl.iem$ioval <- list(iv=list(t1=flfval), ov=list(t1=flfval))
