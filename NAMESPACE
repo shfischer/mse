@@ -23,6 +23,7 @@ export(
   "fixedF.hcr",
   "ices.hcr",
   "movingF.hcr",
+  "catchSSB.hcr",
   "noise.iem",
   "tac.is",
   "effort.is",

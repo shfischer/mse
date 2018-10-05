@@ -97,67 +97,31 @@ movingF.hcr <- function(stk, hcrpars, ay, tracking){
 	list(ctrl=ctrl, tracking=tracking)
 } # }}}
 
-# Test:
-# library(FLCore)
-# data(ple4)
-# Test ICES HCR - single iter
-#ple4t <- ple4
-#control <- list(fmin=0.1, ftrg=1.0, blim=100000,bsafe=200000, ssb_lag=1)
-#ay <- 2008
-#stock.wt(ple4t) <- 1.0
-#stock.n(ple4t)[,ac(ay-control$ssb_lag)] <- 0.0
-#ssb <- seq(from=0, to = 300000, length=20)
-#fout <- rep(NA, length(ssb))
-#for (i in 1:length(ssb)){
-#    stock.n(ple4t)[10,ac(ay-control$ssb_lag)] <- ssb[i]
-#    #c(ssb(ple4t)[,ac(ay-control$ssb_lag)])
-#    fout[i] <- ices_hcr(ple4t, control, ay)
-#}
-#plot(ssb, fout)
+# catchSSB.hcr {{{
 
-# Test ICES HCR - multiple iters
-#niter <- 10
-#ple4p <- propagate(ple4, niter)
-#ay <- 2008
-#stock.wt(ple4p)[] <- 1.0
-#stock.n(ple4p)[,ac(ay-control$ssb_lag)] <- 0.0
-#stock.wt(ple4p) <- stock.wt(ple4p) * rlnorm(prod(dim(stock.wt(ple4p))), mean=0, sd=0.1)
-#control <- list(fmin=0.1, ftrg=1.0, blim=100000,bsafe=200000, ssb_lag=1)
-#ssb <- seq(from=0, to = 300000, length=20)
-#fout <- array(NA, dim=c(length(ssb), niter))
-#ssbout <- array(NA, dim=c(length(ssb), niter))
-#for (i in 1:length(ssb)){
-#    stock.n(ple4p)[10,ac(ay-control$ssb_lag)] <- ssb[i]
-#    fout[i,] <- ices_hcr(ple4p, control, ay)
-#    ssbout[i,] <- c(ssb(ple4p)[,ac(ay-control$ssb_lag)])
-#}
-#plot(ssbout[,1], fout[,1])
-#for (i in 2:niter){
-#    points(ssbout[,i], fout[,i])
-#}
+#' A HCR to set catch based on SSB
+#'
+# hcrparams=FLPar(Dlimit=0.10, Dtarget=0.40, lambda=1.0, dltac=0.15, dhtac=0.15),
 
-# Test h()
-#library(FLash)
-#control <- list(fmin=0.1, ftrg=1.0, blim=100000,bsafe=200000, ssb_lag=1)
-#niter <- 10
-#ple4p <- propagate(ple4, niter)
-#ay <- 2000
-#stock.n(ple4p) <- stock.n(ple4p) * rlnorm(prod(dim(stock.n(ple4p))), mean=0, sd=0.1)
-#EFF <- FLQuant(NA, dimnames=list(EFF="all", year=dimnames(stock.n(ple4p))$year, iter=dimnames(stock.n(ple4p))$iter))
-#eff_dmns <- dimnames(EFF)
-#names(eff_dmns)[1] <- "metric"
-#eff_dmns[["metric"]] <- c("Fperc", "Fhcr", "Implementation", "IEM", "Hyper")
-#EFF0 <- FLQuant(NA, dimnames=eff_dmns)
-## from funs.R
-#getCtrl <- function(values, quantity, years, it){
-#	dnms <- list(iter=1:it, year=years, c("min", "val", "max"))
-#	arr0 <- array(NA, dimnames=dnms, dim=unlist(lapply(dnms, length)))
-#	arr0[,,"val"] <- unlist(values)
-#	arr0 <- aperm(arr0, c(2,3,1))
-#	ctrl <- fwdControl(data.frame(year=years, quantity=quantity, val=NA))
-#	ctrl@trgtArray <- arr0
-#	ctrl
-#}
-#test <- h(method = "ices_hcr", stk=ple4p, ay=ay, EFF0=EFF0, control=control)
+#' @param dtarget
+#' @param dlimit
+#' @param lambda
+#' @param MSY
 
+catchSSB.hcr <- function(stk, dtarget=0.40, dlimit=0.10, lambda=1, MSY, ssb_lag=1,
+  ay, tracking) {
+  
+  # COMPUTE depletion
+  dep <- ssb(stk)[, ac(ay - ssb_lag)] / ssb(stk)[, 1]
 
+  # RULE
+  catch <- ifelse(dep <= dlimit, 0,
+    ifelse(dep < dtarget, (lambda * MSY) / (dtarget - dlimit) * (dep - dlimit),
+    lambda * MSY))
+  
+  # CONTROL
+	ctrl <- getCtrl(c(catch), "catch", ay + 1, dim(catch)[6], it=1)
+	
+	return(list(ctrl=ctrl, tracking=tracking))
+
+} # }}}

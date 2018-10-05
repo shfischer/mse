@@ -185,6 +185,12 @@ ctrl <- mpCtrl(list(ctrl.hcr = mseCtrl(method=fixedF.hcr, args=list(ftrg=0.3))))
 
 res1 <- mp(om, oem, ctrl.mp=ctrl, genArgs=mpargs)
 
+# TODO
+ctrl <- mpCtrl(list(ctrl.hcr = mseCtrl(method=catchSSB.hcr,
+  args=list(dtarget=0.40, dlimit=0.30, lambda=2, MSY=9.5e04, ssb_lag=1))))
+
+res <- mp(om, oem, ctrl.mp=ctrl, genArgs=mpargs)
+
 # base with TAC
 ctrl <- mpCtrl(list(ctrl.hcr = mseCtrl(method=fixedF.hcr, args=list(ftrg=0.3)),
 	ctrl.is = mseCtrl(method=tac.is)))

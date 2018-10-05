@@ -23,6 +23,7 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 	y0 <- genArgs$y0 # initial data year
 	dy <- genArgs$dy # final data year
 	iy <- genArgs$iy # initial year of projection (also intermediate)
+  it <- genArgs$it
 	nsqy <- genArgs$nsqy # number of years to compute status quo metrics
 	vy <- ac(iy:fy) # vector of years to be projected
 
