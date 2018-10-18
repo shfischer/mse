@@ -11,12 +11,12 @@
 \alias{sr<-}
 \alias{sr<--methods}
 \alias{sr<-,FLom,FLSR-method}
-\alias{brp,FLom-method}
-\alias{brp}
-\alias{brp-methods}
-\alias{brp<-}
-\alias{brp<--methods}
-\alias{brp<-,FLom,FLPar-method}
+\alias{refpts,FLom-method}
+\alias{refpts}
+\alias{refpts-methods}
+\alias{refpts<-}
+\alias{refpts<--methods}
+\alias{refpts<-,FLom,FLPar-method}
 \alias{fleetBehaviour}
 \alias{fleetBehaviour-methods}
 \alias{fleetBehaviour,FLom-method}
@@ -43,11 +43,11 @@ sr(object) <- value
 
 \S4method{sr}{FLom,FLSR}(object) <- value
 
-\S4method{brp}{FLom}(object)
+\S4method{refpts}{FLom}(object)
 
-brp(object) <- value
+refpts(object) <- value
 
-\S4method{brp}{FLom,FLPar}(object) <- value
+\S4method{refpts}{FLom,FLPar}(object) <- value
 
 fleetBehaviour(object, ...)
 
@@ -89,7 +89,7 @@ Suspendisse eu sapien vitae arcu lobortis ultrices vitae ac velit. Curabitur id
 
 \item{\code{sr}}{The stock-recruitment relationship, \code{FLSR}.}
 
-\item{\code{brp}}{The estimated reference points, \code{FLPar}.}
+\item{\code{refpts}}{The estimated reference points, \code{FLPar}.}
 
 \item{\code{fleetBehaviour}}{Dynamics of the fishing fleet to be used in projections, \code{mseCtrl}.}
 }}

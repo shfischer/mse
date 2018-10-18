@@ -27,7 +27,7 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 	nsqy <- genArgs$nsqy # number of years to compute status quo metrics
 	vy <- ac(iy:fy) # vector of years to be projected
 
-	# init tracking
+	# INIT tracking
 	tracking0 <- FLQuant(NA, dimnames=list(metric=c("F.est", "B.est", "conv.est",
     "F.hcr", "metric.is", "metric.iem", "metric.fb","F.om", "B.om", "C.om"),
     year=c(iy-1,vy), iter=1:it))
@@ -37,31 +37,30 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
   else
     tracking <- tracking0
 
-	# get historical 	
+	# GET historical 	
 	tracking["metric.is", ac(iy)] <- catch(stk.om)[,ac(iy)]
 
-	# set seed
+	# SET seed
 	if (!is.null(genArgs$seed)) set.seed(genArgs$seed)
   
-	#============================================================
-	# go fish
-	for(i in vy[-length(vy)]) {
+	# --- GO FISH!
+  for(i in vy[-length(vy)]) {
 
 		gc()
 
-		ay <- an(i)
 		cat(i, " > ")
-		vy0 <- 1:(ay-y0) # data years (positions vector) - one less than current year
+		
+    ay <- an(i)
+    vy0 <- 1:(ay-y0) # data years (positions vector) - one less than current year
 		sqy <- ac((ay-1):(ay-nsqy)) # years for status quo computations 
 		
+    # TRACK om
 		tracking["F.om", ac(ay-1)] <- fbar(stk.om)[,ac(ay-1)]    
 		tracking["B.om", ac(ay-1)] <- ssb(stk.om)[,ac(ay-1)]    
 		tracking["C.om", ac(ay-1)] <- catch(stk.om)[,ac(ay-1)]    
 		
-		#==========================================================
-		# OEM
-		#----------------------------------------------------------
-		# function o()
+		# --- OEM
+
 		ctrl.oem <- args(oem)
 		ctrl.oem$method <- method(oem)
 		ctrl.oem$deviances <- deviances(oem)
@@ -75,13 +74,10 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 		stk0 <- o.out$stk
 		idx0 <- o.out$idx
 		observations(oem) <- o.out$observations
-		tracking <- o.out$tracking
+    tracking <- o.out$tracking
 
-		#==========================================================
-		# MP
-		#----------------------------------------------------------
-		# Estimator of stock statistics
-		# function f()
+		# --- EST, estimator of stock statistics
+
 		if (!is.null(ctrl.mp$ctrl.est)){
 			ctrl.est <- args(ctrl.mp$ctrl.est)
 			ctrl.est$method <- method(ctrl.mp$ctrl.est)
@@ -97,10 +93,9 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 		tracking["B.est",ac(ay)] <- ssb(stk0)[,ac(ay-1)]
 	
 
-		#----------------------------------------------------------
-		# HCR parametrization
-		# function x()
-		if (!is.null(ctrl.mp$ctrl.phcr)){
+		# --- PHCR, HCR parameterization
+		
+    if (!is.null(ctrl.mp$ctrl.phcr)){
 			ctrl.phcr <- args(ctrl.mp$ctrl.phcr)
 			ctrl.phcr$method <- method(ctrl.mp$ctrl.phcr) 
 			ctrl.phcr$stk <- stk0
@@ -114,10 +109,9 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 			tracking <- out$tracking
 		}
 
-		#----------------------------------------------------------
-		# HCR
-		# function h()
-		if (!is.null(ctrl.mp$ctrl.hcr)){
+		# --- HCR
+		
+    if (!is.null(ctrl.mp$ctrl.hcr)){
 			ctrl.hcr <- args(ctrl.mp$ctrl.hcr)
 			ctrl.hcr$method <- method(ctrl.mp$ctrl.hcr)
 			ctrl.hcr$stk <- stk0
@@ -133,10 +127,9 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 		}
 		tracking["F.hcr", ac(ay)] <- ctrl[ac(ay+1),]$value
 		
-		#----------------------------------------------------------
-		# Implementation system
-		# function k()
-		if (!is.null(ctrl.mp$ctrl.is)){
+		# --- IS, implementation system
+		
+    if (!is.null(ctrl.mp$ctrl.is)){
 			ctrl.is <- args(ctrl.mp$ctrl.is)
 			ctrl.is$method <- method(ctrl.mp$ctrl.is)
 			ctrl.is$ctrl <- ctrl
@@ -152,9 +145,8 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 			tracking["metric.is", ac(ay)] <- tracking["F.hcr", ac(ay+1)]
 		}
 
-		#----------------------------------------------------------
-		# Technical measures
-		# function w()
+		# --- TM, technical measures
+
 		if (!is.null(ctrl.mp$ctrl.tm)){
 			ctrl.tm <- args(ctrl.mp$ctrl.tm)
 			ctrl.tm$method <- method(ctrl.mp$ctrl.tm)
@@ -167,10 +159,9 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 			tracking <- out$tracking
 		}
 
-		#==========================================================
-		# IEM
-		#----------------------------------------------------------
-		if(!missing(iem)){
+		# --- IEM, implementation error
+		
+    if(!missing(iem)){
 			ctrl.iem <- args(iem)
 			ctrl.iem$method <- method(iem)
 			ctrl.iem$ctrl <- ctrl
@@ -182,11 +173,8 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 		}
 		tracking["metric.iem", ac(ay)] <- ctrl[ac(ay+1),]$value
 
-		#==========================================================
-		# OM
-		#----------------------------------------------------------
-		# fleet dynamics/behaviour
-		# function j()
+		# --- FB, fleet dynamics/behaviour
+
 		if (exists(fleetBehaviour(om))){
 			ctrl.fb <- args(fleetBehaviour(om))
 			ctrl.fb$method <- method(fleetBehaviour(om))
@@ -197,24 +185,29 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 			ctrl <- out$ctrl
 			tracking <- out$tracking
 		}
-	    # TODO value()
+	  
+    # TODO value()
 		tracking["metric.fb", ac(ay)] <- ctrl[ac(ay+1),]$value
 
-		#----------------------------------------------------------
-		# stock dynamics and OM projections
-		# function g()
-		if(!is.null(attr(ctrl, "snew"))) harvest(stk.om)[,ac(ay+1)] <- attr(ctrl, "snew")
-
-		stk.om <- fwd(stk.om, control=ctrl, sr=sr.om, deviances = sr.om.res, effort_max=3)
+    # --- FWD
+		
+    # NEW selectivity?
+    if(!is.null(attr(ctrl, "snew")))
+      harvest(stk.om)[, ac(ay+1)] <- attr(ctrl, "snew")
+    
+    stk.om <- fwd(stk.om, control=ctrl, sr=sr.om, deviances = sr.om.res,
+      effort_max=3)
 
 	}
     cat("\n")
 
-	#============================================================
+  # --- OUTPUT
+
     mp <- as(om, "FLmse")
     stock(mp) <- stk.om
     tracking(mp) <- tracking
     genArgs(mp) <- genArgs
-	mp
+
+	return(mp)
 }
 

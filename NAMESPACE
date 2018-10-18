@@ -16,7 +16,6 @@ importFrom("stats",
   "na.exclude",
   "setNames",
   "rf")
-
 export(
   "getCtrl",
   "hyperstability.fb",
@@ -32,5 +31,4 @@ export(
   "perfect.sa",
   "mpa.tm"
 )
-
 exportPattern("^[^\\.]")

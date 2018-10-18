@@ -76,7 +76,7 @@ residuals(srbh) <- resbh
 # Refpts
 # ==============================================================================
 
-brp <- brp(FLBRP(stk0, srbh))
+refpts <- refpts(brp(FLBRP(stk0, srbh)))
 
 # ==============================================================================
 # Set up operating model
@@ -94,7 +94,7 @@ fb <- mseCtrl(method=hyperstability.fb, args=list(beta=0.8))
 #==============================================================================
 # OM object
 #==============================================================================
-om <- FLom(stock=stk, sr=srbh, brp=refpts(brp))#, fleetBehaviour=fb)
+om <- FLom(stock=stk, sr=srbh, refpts=refpts)#, fleetBehaviour=fb)
 
 ###############################################################################
 # OEM settings
@@ -185,11 +185,13 @@ ctrl <- mpCtrl(list(ctrl.hcr = mseCtrl(method=fixedF.hcr, args=list(ftrg=0.3))))
 
 res1 <- mp(om, oem, ctrl.mp=ctrl, genArgs=mpargs)
 
-# TODO
+# TODO catchSSB
 ctrl <- mpCtrl(list(ctrl.hcr = mseCtrl(method=catchSSB.hcr,
-  args=list(dtarget=0.40, dlimit=0.30, lambda=2, MSY=9.5e04, ssb_lag=1))))
+  args=list(dtarget=0.40, dlimit=0.10, lambda=1, MSY=9.5e04, ssb_lag=1))))
 
 res <- mp(om, oem, ctrl.mp=ctrl, genArgs=mpargs)
+
+plot(stock(res))
 
 # base with TAC
 ctrl <- mpCtrl(list(ctrl.hcr = mseCtrl(method=fixedF.hcr, args=list(ftrg=0.3)),
