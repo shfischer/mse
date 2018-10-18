@@ -115,12 +115,12 @@ catchSSB.hcr <- function(stk, dtarget=0.40, dlimit=0.10, lambda=1, MSY, ssb_lag=
   dep <- ssb(stk)[, ac(ay - ssb_lag)] / ssb(stk)[, 1]
 
   # RULE
-  catch <- ifelse(dep <= dlimit, 0,
+  ca <- ifelse(dep <= dlimit, 0,
     ifelse(dep < dtarget, (lambda * MSY) / (dtarget - dlimit) * (dep - dlimit),
-    lambda * MSY))
+    MSY))
   
   # CONTROL
-	ctrl <- getCtrl(c(catch), "catch", ay + 1, dim(catch)[6], it=1)
+	ctrl <- getCtrl(c(ca), quant="catch", years=ay + 1, it=dim(ca)[6])
 	
 	return(list(ctrl=ctrl, tracking=tracking))
 
