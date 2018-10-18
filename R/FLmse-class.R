@@ -33,10 +33,10 @@ setGeneric("FLmse")
 setMethod("initialize", "FLmse",
     function(.Object,
              ...,
-             stock, sr, brp, fleetBehaviour, tracking, genArgs) {
+             stock, sr, refpts, fleetBehaviour, tracking, genArgs) {
       if (!missing(stock)) .Object@stock <- stock 
       if (!missing(sr)) .Object@sr <- sr
-      if (!missing(brp)) .Object@brp <- brp
+      if (!missing(refpts)) .Object@refpts <- refpts
       if (!missing(fleetBehaviour)) .Object@fleetBehaviour <- fleetBehaviour
       if (!missing(tracking)) .Object@tracking <- tracking
       if (!missing(genArgs)) .Object@genArgs <- genArgs
