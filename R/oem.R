@@ -50,5 +50,32 @@ perfect.oem <- function(stk, deviances, observations, vy0, ay, tracking){
 	stk0 <- stk[,dataYears]
 	idx0 <- FLIndices(a=FLIndex(index=stock.n(stk)[,dataYears]*0.01))
 	range(idx0[[1]])[c("startf","endf")] <- c(0,0)
-	list(stk=stk0, idx=idx0, deviances, observations, tracking=tracking)
+	list(stk=stk0, idx=idx0, deviances=deviances, observations=observations, tracking=tracking)
+} # }}}
+
+# cpue.oem {{{
+
+cpue.oem <- function(stk, deviances, observations, vy0, ay, tracking){
+
+	dataYears <- vy0
+	say <- ac(ay)
+ 
+
+  # GET historical cpue
+  cpue <- window(observations$idx[[1]], end=ay)
+
+  ctime <- sum(range(cpue)[c("startf", "endf")]) / 2
+
+  # GENERATE new observation of abundance
+  obs <- quantSums(stock.n(stk)[,say] *
+    exp(-harvest(stk)[,say] * ctime - m(stk)[,say] * ctime) *
+    stock.wt(stk)[,say] * sel.pattern(cpue)[,say])
+
+  index(cpue)[,say] <- obs * index.q(cpue)[,say]
+
+  idx <- FLIndices(setNames(list(cpue), names(observations$idx)))
+  observations$idx[[1]][,say] <- idx[[1]][,say]
+	
+  list(stk=stk, idx=idx, deviances=deviances,
+    observations=observations, tracking=tracking)
 } # }}}

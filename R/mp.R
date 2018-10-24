@@ -10,7 +10,7 @@
 # mp {{{
 
 mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs, 
-  scenario="test", tracking="missing"){
+  scenario="test", tracking="missing", verbose=TRUE){
 
 	# PREPARE the om
 	stk.om <- stock(om)	
@@ -28,16 +28,16 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 	vy <- ac(iy:fy) # vector of years to be projected
 
 	# INIT tracking
-	tracking0 <- FLQuant(NA, dimnames=list(metric=c("F.est", "B.est", "conv.est",
-    "F.hcr", "metric.is", "metric.iem", "metric.fb","F.om", "B.om", "C.om"),
-    year=c(iy-1,vy), iter=1:it))
+  metric <- c("F.est", "B.est", "conv.est", "metric.hcr", "metric.is",
+    "metric.iem", "metric.fb","F.om", "B.om", "C.om")
 	
   if (!missing(tracking))
-    tracking <- qbind(tracking, tracking0)
-  else
-    tracking <- tracking0
+    metric <- c(metric, tracking)
 
-	# GET historical 	
+	tracking <- FLQuant(NA, dimnames=list(metric=metric, year=c(iy-1,vy), iter=1:it))
+
+	# GET historical
+  # TODO CHECK
 	tracking["metric.is", ac(iy)] <- catch(stk.om)[,ac(iy)]
 
 	# SET seed
@@ -48,7 +48,8 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 
 		gc()
 
-		cat(i, " > ")
+    if(verbose)
+  		cat(i, " > ")
 		
     ay <- an(i)
     vy0 <- 1:(ay-y0) # data years (positions vector) - one less than current year
@@ -60,7 +61,6 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 		tracking["C.om", ac(ay-1)] <- catch(stk.om)[,ac(ay-1)]    
 		
 		# --- OEM
-
 		ctrl.oem <- args(oem)
 		ctrl.oem$method <- method(oem)
 		ctrl.oem$deviances <- deviances(oem)
@@ -83,6 +83,7 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 			ctrl.est$method <- method(ctrl.mp$ctrl.est)
 			ctrl.est$stk <- stk0
 			ctrl.est$idx <- idx0
+			ctrl.est$ay <- ay
 			ctrl.est$tracking <- tracking
 			ctrl.est$ioval <- list(iv=list(t1=flsval, t2=flival), ov=list(t1=flsval))
 			out.assess <- do.call("mpDispatch", ctrl.est)
@@ -90,7 +91,7 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 			tracking <- out.assess$tracking
 		}
 		tracking["F.est",ac(ay)] <- fbar(stk0)[,ac(ay-1)]
-		tracking["B.est",ac(ay)] <- ssb(stk0)[,ac(ay-1)]
+		# tracking["B.est",ac(ay)] <- ssb(stk0)[,ac(ay-1)]
 	
 
 		# --- PHCR, HCR parameterization
@@ -125,7 +126,7 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 		} else {
 			ctrl <- getCtrl(yearMeans(fbar(stk0)[,sqy]), "f", ay+1, it)
 		}
-		tracking["F.hcr", ac(ay)] <- ctrl[ac(ay+1),]$value
+		tracking["metric.hcr", ac(ay)] <- ctrl[ac(ay+1),]$value
 		
 		# --- IS, implementation system
 		
@@ -142,7 +143,7 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 			tracking <- out$tracking
 		  tracking["metric.is", ac(ay)] <- ctrl[ac(ay+1),]$value
 		} else {
-			tracking["metric.is", ac(ay)] <- tracking["F.hcr", ac(ay+1)]
+			tracking["metric.is", ac(ay)] <- tracking["metric.hcr", ac(ay+1)]
 		}
 
 		# --- TM, technical measures
@@ -199,13 +200,14 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
       effort_max=3)
 
 	}
-    cat("\n")
+    if(verbose)
+      cat("\n")
 
   # --- OUTPUT
 
     mp <- as(om, "FLmse")
-    stock(mp) <- stk.om
-    tracking(mp) <- tracking
+    stock(mp) <- window(stk.om, start=iy, end=fy)
+    tracking(mp) <- window(tracking, end=fy)
     genArgs(mp) <- genArgs
 
 	return(mp)

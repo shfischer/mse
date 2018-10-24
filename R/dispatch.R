@@ -21,18 +21,22 @@ flqval <- list(object="flq", test= "!is(object, \"FLQuant\")", msg="\"flq must b
 
 # mpDispatch {{{
 mpDispatch <- function(ioval, ...){
-	args <- list(...)
+	
+  args <- list(...)
 	method <- args$method
 	args$method <- NULL
+
 	# checks in
 	for(i in ioval$iv){
 		object <- args[i$object]
 		str <- paste("if(", i$test, ")", i$msg, sep=" ")
 		eval(parse(text=str))
 	}
-	# dispatch
+	
+  # dispatch
 	out <- do.call(method, args)
-	# checks out
+	
+  # checks out
 	for(i in ioval$ov){
 		object <- out[i$object]
 		str <- paste("if(", i$test, ")", i$msg, sep=" ")

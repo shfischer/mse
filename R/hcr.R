@@ -101,7 +101,7 @@ movingF.hcr <- function(stk, hcrpars, ay, tracking){
 
 #' A HCR to set catch based on SSB
 #'
-# hcrparams=FLPar(Dlimit=0.10, Dtarget=0.40, lambda=1.0, dltac=0.15, dhtac=0.15),
+# hcrparams=FLPar(dlimit=0.10, dtarget=0.40, lambda=1.0, dltac=0.15, dhtac=0.15),
 
 #' @param dtarget
 #' @param dlimit
@@ -121,7 +121,28 @@ catchSSB.hcr <- function(stk, dtarget=0.40, dlimit=0.10, lambda=1, MSY, ssb_lag=
   
   # CONTROL
 	ctrl <- getCtrl(c(ca), quant="catch", years=ay + 1, it=dim(ca)[6])
+
+  # TAC limits
 	
 	return(list(ctrl=ctrl, tracking=tracking))
 
 } # }}}
+
+#' cpue.hcr
+#'
+#' @examples
+#' data(ple4)
+
+cpue.hcr <- function(stk, rule=~tac * (1 + lambda * slope), ay,
+  lambda=1, tracking){
+  
+  slope <- tracking["cpue.est", ac(ay)]
+
+  # TODO getCtrl
+  ctrl <- fwdControl(quant="catch", value=eval(rule[[2]],
+    list(tac=catch(stk)[, ac(ay-1)], lambda=lambda, slope=slope)), year=ay+1)
+  
+	return(list(ctrl=ctrl, tracking=tracking))
+}
+
+  

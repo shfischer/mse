@@ -80,7 +80,6 @@ setMethod("performance", signature(x="FLQuants"),
     if(is.null(names(years)))
       names(years) <- as.character(unlist(lapply(years,
         function(x) x[length(x)])))
-    
     # LOOP over years
     res <- data.table::rbindlist(lapply(years, function(i) {
       # LOOP over indicators
