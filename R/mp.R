@@ -20,11 +20,18 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 
   # VARIABLES
 	fy <- genArgs$fy # final year
+  # dy0 om$startyr | oem$args$
 	y0 <- genArgs$y0 # initial data year
+  # ay - oem$args$datalag
 	dy <- genArgs$dy # final data year
+  # TODO mlag
 	iy <- genArgs$iy # initial year of projection (also intermediate)
+  # om$its
   it <- genArgs$it
+  #
 	nsqy <- genArgs$nsqy # number of years to compute status quo metrics
+  # freq
+
 	vy <- ac(iy:fy) # vector of years to be projected
 
 	# INIT tracking
@@ -204,12 +211,14 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
       cat("\n")
 
   # --- OUTPUT
+    res <- as(om, "FLmse")
+    stock(res) <- window(stk.om, start=iy, end=fy)
+    tracking(res) <- window(tracking, end=fy)
+    genArgs(res) <- genArgs
+    # TODO accessors
+    res@oem <- oem
+    res@control <- ctrl.mp
 
-    mp <- as(om, "FLmse")
-    stock(mp) <- window(stk.om, start=iy, end=fy)
-    tracking(mp) <- window(tracking, end=fy)
-    genArgs(mp) <- genArgs
-
-	return(mp)
+	return(res)
 }
 

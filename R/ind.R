@@ -21,7 +21,7 @@ cpue.ind <- function(stk, idx, nyears=5, ay, tracking) {
   slope <- dat[, .(slope=coef(lm(log(data)~year))[2]), by=iter]
 	
   # OUTPUT
-  tracking["cpue.est", ac(ay)] <- c(slope[,slope])
+  tracking["cpue.ind", ac(ay)] <- c(slope[,slope])
 
   # ADD ind to tracking$B.est
   list(stk=stk, tracking=tracking)

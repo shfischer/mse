@@ -173,3 +173,21 @@ setMethod("show", signature(object = "FLom"),
   show(object@fleetBehaviour)
 
  })
+
+#' @rdname FLom-class
+setMethod("window", signature(x = "FLom"),
+  function(x, ...) {
+
+    stock(x) <- window(stock(x), ...)
+    sr(x) <- window(sr(x), ...)
+
+    return(x)
+  }
+)
+
+
+setMethod("plot", signature(x="FLom", y="missing"),
+  function(x, ...) {
+    plot(stock(x), ...)
+  }
+)

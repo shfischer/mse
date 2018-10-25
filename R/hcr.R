@@ -128,6 +128,7 @@ catchSSB.hcr <- function(stk, dtarget=0.40, dlimit=0.10, lambda=1, MSY, ssb_lag=
 
 } # }}}
 
+# cpue.hcr {{{
 #' cpue.hcr
 #'
 #' @examples
@@ -136,13 +137,11 @@ catchSSB.hcr <- function(stk, dtarget=0.40, dlimit=0.10, lambda=1, MSY, ssb_lag=
 cpue.hcr <- function(stk, rule=~tac * (1 + lambda * slope), ay,
   lambda=1, tracking){
   
-  slope <- tracking["cpue.est", ac(ay)]
+  slope <- tracking["cpue.ind", ac(ay)]
 
   # TODO getCtrl
   ctrl <- fwdControl(quant="catch", value=eval(rule[[2]],
     list(tac=catch(stk)[, ac(ay-1)], lambda=lambda, slope=slope)), year=ay+1)
   
 	return(list(ctrl=ctrl, tracking=tracking))
-}
-
-  
+} # }}}

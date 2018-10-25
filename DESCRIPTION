@@ -49,6 +49,7 @@ Collate:
   'mc.R'
   'performance.R'
   'run.R'
+  'tune.R'
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 License: EUPL
