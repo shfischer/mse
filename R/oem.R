@@ -60,7 +60,6 @@ cpue.oem <- function(stk, deviances, observations, vy0, ay, tracking){
 	dataYears <- vy0
 	say <- ac(ay)
  
-
   # GET historical cpue
   cpue <- window(observations$idx[[1]], end=ay)
 

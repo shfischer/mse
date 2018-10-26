@@ -134,14 +134,24 @@ catchSSB.hcr <- function(stk, dtarget=0.40, dlimit=0.10, lambda=1, MSY, ssb_lag=
 #' @examples
 #' data(ple4)
 
-cpue.hcr <- function(stk, rule=~tac * (1 + lambda * slope), ay,
-  lambda=1, tracking){
+cpue.hcr <- function(stk, ay, k1, k2, k3, k4, target=1,
+  dtaclow=0.85, dtacupp=1.15, tracking){
   
-  slope <- tracking["cpue.ind", ac(ay)]
+  # RECOVER slope & mean(cpue)
+  slope <- tracking["cpue.slope", ac(ay)]
+  mcpue <- tracking["cpue.mean", ac(ay)]
 
-  # TODO getCtrl
-  ctrl <- fwdControl(quant="catch", value=eval(rule[[2]],
-    list(tac=catch(stk)[, ac(ay-1)], lambda=lambda, slope=slope)), year=ay+1)
+  # CALCULATE new tac
+
+  ka <- ifelse(slope > 0, k1, k2)
+  kb <- ifelse(mcpue > target, k3, k4)
+
+  # TAC_y-1 ~ TAC_y * 1 + ka * m + kb * (mcpue - target)
+  tac <- catch(stk)[, ac(ay-1)] * (1 + ka * slope + kb * (mcpue - target))
+
+  ctrl <- fwdControl(list(quant="catch", value=tac, year=ay + 1),
+    # TAC limits
+    list(quant="catch", min=dtaclow, max=dtacupp, relYear=ay - 1, year=ay + 1))
   
 	return(list(ctrl=ctrl, tracking=tracking))
 } # }}}

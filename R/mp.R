@@ -133,7 +133,9 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 		} else {
 			ctrl <- getCtrl(yearMeans(fbar(stk0)[,sqy]), "f", ay+1, it)
 		}
-		tracking["metric.hcr", ac(ay)] <- ctrl[ac(ay+1),]$value
+
+    # TODO HANDLE multiple targets
+  	tracking["metric.hcr", ac(ay)] <- na.exclude(c(ctrl[ac(ay+1),]$value))
 		
 		# --- IS, implementation system
 		
@@ -179,7 +181,7 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 			ctrl <- out$ctrl
 			tracking <- out$tracking
 		}
-		tracking["metric.iem", ac(ay)] <- ctrl[ac(ay+1),]$value
+  	tracking["metric.iem", ac(ay)] <- na.exclude(c(ctrl[ac(ay+1),]$value))
 
 		# --- FB, fleet dynamics/behaviour
 
@@ -194,18 +196,15 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
 			tracking <- out$tracking
 		}
 	  
-    # TODO value()
-		tracking["metric.fb", ac(ay)] <- ctrl[ac(ay+1),]$value
+  	tracking["metric.fb", ac(ay)] <- na.exclude(c(ctrl[ac(ay+1),]$value))
 
     # --- FWD
 		
     # NEW selectivity?
     if(!is.null(attr(ctrl, "snew")))
       harvest(stk.om)[, ac(ay+1)] <- attr(ctrl, "snew")
-    
     stk.om <- fwd(stk.om, control=ctrl, sr=sr.om, deviances = sr.om.res,
       effort_max=3)
-
 	}
     if(verbose)
       cat("\n")

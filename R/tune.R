@@ -11,15 +11,16 @@
 #' 
 #' @examples
 
-tunebisect <- function(om, control, metrics, indicator, tune=list(ftrg=c(0.20, 1.20)),
-  mpargs, prob=0.5, tol=0.01, maxit=12, verbose=TRUE, ...) {
+tunebisect <- function(om, control, metrics, indicator,
+  tune=list(ftrg=c(0.20, 1.20)), mpargs, prob=0.5, tol=0.01, maxit=12,
+  verbose=TRUE, pyears=mpargs$vy, ...) {
   
   # RUN at min, ...
   cmin <- control
   cmin$ctrl.hcr@args[names(tune)] <- lapply(tune, '[', 1)
   rmin <- mp(om, ctrl.mp=cmin, genArgs=mpargs, scenario=paste0("min"), ...)
   pmin <- performance(metrics(stock(rmin), metrics=metrics), indicator=indicator,
-    refpts=refpts(om), probs=NULL, years=mpargs$vy)
+    refpts=refpts(om), probs=NULL, years=pyears)
   obmin <- mean(pmin$data) - prob
 
   # CHECK cmin result
@@ -31,7 +32,7 @@ tunebisect <- function(om, control, metrics, indicator, tune=list(ftrg=c(0.20, 1
   cmax$ctrl.hcr@args[names(tune)] <- lapply(tune, '[', 2)
   rmax <- mp(om, ctrl.mp=cmax, genArgs=mpargs, scenario=paste0("max"), ...)
   pmax <- performance(metrics(stock(rmax), metrics=metrics), indicator=indicator,
-    refpts=refpts(om), probs=NULL, years=mpargs$vy)
+    refpts=refpts(om), probs=NULL, years=pyears)
   obmax <- mean(pmax$data) - prob
 
   # CHECK cmax result
@@ -39,8 +40,9 @@ tunebisect <- function(om, control, metrics, indicator, tune=list(ftrg=c(0.20, 1
     return(rmax)
 
   # CHECK range includes 0
-  if((obmin * obmax) > 0)
+  if((obmin * obmax) > 0) {
     stop("Range of hcr param(s) cannot achieve requested tuning objective probability")
+  }
 
   # LOOP bisecting
   count <- 0
@@ -52,7 +54,7 @@ tunebisect <- function(om, control, metrics, indicator, tune=list(ftrg=c(0.20, 1
       (cmin$ctrl.hcr@args[[names(tune)]] + cmax$ctrl.hcr@args[[names(tune)]]) / 2
     rmid <- mp(om, ctrl.mp=cmid, genArgs=mpargs, scenario=paste0("mid"), ...)
     pmid <- performance(metrics(stock(rmid), metrics=metrics), indicator=indicator,
-      refpts=refpts(om), probs=NULL, years=mpargs$vy)
+      refpts=refpts(om), probs=NULL, years=pyears)
     obmid <- mean(pmid$data) - prob
 
     if(verbose)
