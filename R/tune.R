@@ -15,25 +15,25 @@ tunebisect <- function(om, control, metrics, indicator,
   tune=list(ftrg=c(0.20, 1.20)), mpargs, prob=0.5, tol=0.01, maxit=12,
   verbose=TRUE, pyears=mpargs$vy, ...) {
   
-  # RUN at min, ...
+  # RUN at min
   cmin <- control
   cmin$ctrl.hcr@args[names(tune)] <- lapply(tune, '[', 1)
   rmin <- mp(om, ctrl.mp=cmin, genArgs=mpargs, scenario=paste0("min"), ...)
   pmin <- performance(metrics(stock(rmin), metrics=metrics), indicator=indicator,
     refpts=refpts(om), probs=NULL, years=pyears)
-  obmin <- mean(pmin$data) - prob
-
+  obmin <- median(pmin$data - prob)
+  
   # CHECK cmin result
   if(isTRUE(all.equal(obmin, 0, tolerance=tol)))
     return(rmin)
 
-  # ... & max
+  # RUN at max
   cmax <- control
   cmax$ctrl.hcr@args[names(tune)] <- lapply(tune, '[', 2)
   rmax <- mp(om, ctrl.mp=cmax, genArgs=mpargs, scenario=paste0("max"), ...)
   pmax <- performance(metrics(stock(rmax), metrics=metrics), indicator=indicator,
     refpts=refpts(om), probs=NULL, years=pyears)
-  obmax <- mean(pmax$data) - prob
+  obmax <- median(pmax$data) - prob
 
   # CHECK cmax result
   if(isTRUE(all.equal(obmax, 0, tolerance=tol)))
@@ -55,7 +55,7 @@ tunebisect <- function(om, control, metrics, indicator,
     rmid <- mp(om, ctrl.mp=cmid, genArgs=mpargs, scenario=paste0("mid"), ...)
     pmid <- performance(metrics(stock(rmid), metrics=metrics), indicator=indicator,
       refpts=refpts(om), probs=NULL, years=pyears)
-    obmid <- mean(pmid$data) - prob
+    obmid <- median(pmid$data) - prob
 
     if(verbose)
       print(paste0("ob: ", obmid, "; ", names(tune), ": ",
