@@ -61,7 +61,7 @@ cpue.oem <- function(stk, deviances, observations, vy0, ay, tracking){
 	say <- ac(ay)
  
   # GET historical cpue
-  cpue <- window(observations$idx[[1]], end=ay)
+  cpue <- window(observations$idx[[1]], end=ay[length(ay)])
 
   ctime <- sum(range(cpue)[c("startf", "endf")]) / 2
 

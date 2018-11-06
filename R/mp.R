@@ -31,8 +31,9 @@ mp <- function(om, oem=FLoem(), iem="missing", ctrl.mp, genArgs,
   #
 	nsqy <- genArgs$nsqy # number of years to compute status quo metrics
   # freq
+  # freq <- genArgs$freq
 
-	vy <- ac(iy:fy) # vector of years to be projected
+	vy <- ac(seq(iy, fy, by=1)) # vector of years to be projected
 
 	# INIT tracking
   metric <- c("F.est", "B.est", "conv.est", "metric.hcr", "metric.is",

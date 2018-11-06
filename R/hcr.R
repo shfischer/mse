@@ -107,9 +107,17 @@ movingF.hcr <- function(stk, hcrpars, ay, tracking){
 #' @param dlimit
 #' @param lambda
 #' @param MSY
+#' @examples
+#' data(ple4)
+#' ssb(ple4)[,'1995'] / ssb(ple4)[,1]
+#' catchSSB.hcr(ple4[,ac(1957:1996)], dtarget=0.40, dlimit=0.10, lambda=1,
+#'   MSY=95000, ay=1995, tracking=FLQuant())
+#' lapply(seq(0.30, 0.90, by=0.1), function(x) {
+#'    catchSSB.hcr(ple4[,ac(1957:1996)], dtarget=x, dlimit=0.10, lambda=1,
+#'   MSY=95000, ay=1995, tracking=FLQuant())$ctrl})
 
 catchSSB.hcr <- function(stk, dtarget=0.40, dlimit=0.10, lambda=1, MSY, ssb_lag=1,
-  ay, tracking) {
+  dtaclow=0.85, dtacupp=1.15, ay, tracking) {
   
   # COMPUTE depletion
   dep <- ssb(stk)[, ac(ay - ssb_lag)] / ssb(stk)[, 1]
@@ -117,10 +125,12 @@ catchSSB.hcr <- function(stk, dtarget=0.40, dlimit=0.10, lambda=1, MSY, ssb_lag=
   # RULE
   ca <- ifelse(dep <= dlimit, 0,
     ifelse(dep < dtarget, (lambda * MSY) / (dtarget - dlimit) * (dep - dlimit),
-    MSY))
-  
+    lambda * MSY))
+
   # CONTROL
-	ctrl <- getCtrl(c(ca), quant="catch", years=ay + 1, it=dim(ca)[6])
+  ctrl <- fwdControl(list(quant="catch", value=c(ca), year=ay + 1),
+    # TAC limits
+    list(quant="catch", min=dtaclow, max=dtacupp, relYear=ay - 1, year=ay + 1))
 
   # TAC limits
 	

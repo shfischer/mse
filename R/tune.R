@@ -11,9 +11,15 @@
 #' 
 #' @examples
 
-tunebisect <- function(om, control, metrics, indicator,
-  tune=list(ftrg=c(0.20, 1.20)), mpargs, prob=0.5, tol=0.01, maxit=12,
-  verbose=TRUE, pyears=mpargs$vy, ...) {
+tunebisect <- function(om, control, metrics, indicator, tune, mpargs,
+  prob=0.5, tol=0.01, maxit=12, verbose=TRUE, pyears=mpargs$vy, ...) {
+
+  # CHECKS
+
+  # indicator is of length 1
+  # 0 < prob < 1
+  # tune is of length 1
+  # element in tune is of length 2
   
   # RUN at min
   cmin <- control
@@ -21,27 +27,36 @@ tunebisect <- function(om, control, metrics, indicator,
   rmin <- mp(om, ctrl.mp=cmin, genArgs=mpargs, scenario=paste0("min"), ...)
   pmin <- performance(metrics(stock(rmin), metrics=metrics), indicator=indicator,
     refpts=refpts(om), probs=NULL, years=pyears)
-  obmin <- median(pmin$data - prob)
+  obmin <- mean(pmin$data) - prob
+  
+  if(verbose)
+    print(paste0("ob: ", format(obmin, digits=2), "; ", names(tune), ": ",
+      unlist(cmin$ctrl.hcr@args[names(tune)])))
   
   # CHECK cmin result
   if(isTRUE(all.equal(obmin, 0, tolerance=tol)))
     return(rmin)
-
+  
   # RUN at max
   cmax <- control
   cmax$ctrl.hcr@args[names(tune)] <- lapply(tune, '[', 2)
   rmax <- mp(om, ctrl.mp=cmax, genArgs=mpargs, scenario=paste0("max"), ...)
   pmax <- performance(metrics(stock(rmax), metrics=metrics), indicator=indicator,
     refpts=refpts(om), probs=NULL, years=pyears)
-  obmax <- median(pmax$data) - prob
-
+  obmax <- mean(pmax$data) - prob
+  
+  if(verbose)
+    print(paste0("ob: ", format(obmax, digits=2), "; ", names(tune), ": ",
+      unlist(cmax$ctrl.hcr@args[names(tune)])))
+  
   # CHECK cmax result
   if(isTRUE(all.equal(obmax, 0, tolerance=tol)))
     return(rmax)
-
+  
   # CHECK range includes 0
   if((obmin * obmax) > 0) {
     stop("Range of hcr param(s) cannot achieve requested tuning objective probability")
+    return(list(min=rmin, max=rmax))
   }
 
   # LOOP bisecting
@@ -55,10 +70,10 @@ tunebisect <- function(om, control, metrics, indicator,
     rmid <- mp(om, ctrl.mp=cmid, genArgs=mpargs, scenario=paste0("mid"), ...)
     pmid <- performance(metrics(stock(rmid), metrics=metrics), indicator=indicator,
       refpts=refpts(om), probs=NULL, years=pyears)
-    obmid <- median(pmid$data) - prob
+    obmid <- mean(pmid$data) - prob
 
     if(verbose)
-      print(paste0("ob: ", obmid, "; ", names(tune), ": ",
+      print(paste0("ob: ", format(obmid, digits=2), "; ", names(tune), ": ",
         unlist(cmid$ctrl.hcr@args[names(tune)])))
   
     # CHECK and RETURN cmid result
@@ -83,6 +98,6 @@ tunebisect <- function(om, control, metrics, indicator,
     count <- count + 1
   }
 
-  stop("Solution not found!")
+  stop("Solution not found within 'maxit', check 'maxit' or 'tol'.")
 
 } # }}}
