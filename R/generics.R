@@ -34,3 +34,63 @@ find.original.name <- function(fun) {
 }
 
 
+
+
+
+
+### functions for combining FLStock object
+### based on FLCore functionality, but keep additional attributes
+
+setGeneric("combine_attr", function(stk1, stk2, ...) {
+  standardGeneric("combine_attr")
+})
+
+### stk1 = FLStock, stk2 = FLStock, ...
+#' @rdname combine_attr
+setMethod(f = "combine_attr",
+          signature = signature(stk1 = "FLStock", stk2 = "FLStock"),
+          definition = function(stk1, stk2, ...) {
+            
+  ### list with arguments
+  stks <- c(list(stk1, stk2), list(...))
+  ### combine stocks with FLCore functionality
+  res <- do.call(FLCore::combine, stks)
+  
+  ### check for additional non-standard attributes
+  attrs <- setdiff(names(attributes(stk1)), c(slotNames("FLStock"), "class"))
+  ### keep only attributes available in both stocks
+  attrs <- intersect(attrs, names(attributes(stk2)))
+  
+  for (attr_i in attrs) {
+    
+    ### list with attributes
+    attr_i_lst <- lapply(stks, attr, attr_i)
+    
+    if (any(is(attr(stk1, attr_i)) %in% c("FLComp", "FLStock", "FLQuants", 
+                                          "FLQuant", "FLModel"))) {
+      
+      attr(res, attr_i) <- do.call(FLCore::combine, attr_i_lst)
+      
+    } else if (any(is(attr(stk1, attr_i)) %in% c("FLPar"))) {
+      
+      attr(res, attr_i) <- do.call(cbind2, attr_i_lst)
+      ### dimnames
+      itns <- unlist(lapply(lapply(attr_i_lst, dimnames), "[[", "iter"))
+      if (length(unique(itns)) != length(itns)) itns <- seq(length(itns))
+      dimnames(attr(res, attr_i))$iter <- itns
+      
+      ### otherwise simply add list
+    } else {
+      
+      attr(res, attr_i) <- attr_i_lst
+      
+    }
+    
+  }
+  
+  return(res)
+  
+})
+
+
+
