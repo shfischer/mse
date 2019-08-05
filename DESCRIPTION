@@ -1,4 +1,4 @@
-Package: mse
+Package: mseDL
 Title: Tools for Running Management Strategy Evaluations using FLR
 Version: 0.9.9
 Date: 2019-04-01
@@ -47,6 +47,7 @@ Collate:
   'mc.R'
   'performance.R'
   'run.R'
+  'mpDL.R'
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 License: EUPL
