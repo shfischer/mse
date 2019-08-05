@@ -32,6 +32,7 @@ export(
   "ices.hcr",
   "movingF.hcr",
   "mp",
+  "mpDL",
   "mpCtrl",
   "mpDispatch",
   "mpa.tm",
@@ -40,7 +41,9 @@ export(
   "perfect.oem",
   "perfect.sa",
   "sampling.oem",
-  "tac.is")
+  "tac.is",
+  "goFish",
+  "goFishDL")
 
 exportClasses(
   "FLiem",
