@@ -10,7 +10,7 @@
 # mp {{{
 
 #' @export
-mpDL <- function(om, oem=FLoem(), iem=NULL, ctrl.mp, genArgs, scenario="test", tracking="missing", verbose=TRUE){
+mpDL <- function(om, oem=FLoem(), iem=NULL, ctrl.mp, genArgs, scenario="test", tracking="missing", verbose=TRUE, cut_hist = TRUE){
 
 	#============================================================
 	# prepare the om
@@ -127,8 +127,13 @@ mpDL <- function(om, oem=FLoem(), iem=NULL, ctrl.mp, genArgs, scenario="test", t
 	#============================================================
 	# PREPARE for return
 	res <- as(om, "FLmse")
-	stock(res) <- window(stk.om, start=iy, end=fy)
-	tracking(res) <- window(tracking, end=fy)
+	if (isTRUE(cut_hist)){
+	  stock(res) <- window(stk.om, start=iy, end=fy)
+	  tracking(res) <- window(tracking, end=fy)
+	} else {
+	  stock(res) <- stk.om
+	  tracking(res) <- tracking
+	 }
 	genArgs(res) <- genArgs
 	# TODO accessors
 	res@oem <- oem
