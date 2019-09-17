@@ -91,7 +91,7 @@ mpDL <- function(om, oem=FLoem(), iem=NULL, ctrl.mp, genArgs, scenario="test", t
 				sr.om.res.mult=sr.om.res.mult,
 				fb=fb,
 				projection=projection,
-				iem=iem,
+				iem=iters(iem, i),
 				ctrl.mp= iters(ctrl.mp, i),
 				genArgs=genArgs,
 				verbose=verbose)
