@@ -72,10 +72,12 @@ mp <- function(om, oem=NULL, iem=NULL, ctrl, args, scenario="test", tracking="mi
 
 	#============================================================
 	# PREPARE for parallel if needed
-	if(getDoParWorkers() > 1){
-		cat("Going parallel with ", getDoParWorkers(), " cores !\n")
+	nblocks <- args$nblocks
+	it_blocks <- split(seq(args$it), cut(seq(args$it), breaks = nblocks))
+	if (nblocks > 1) {
+		cat("Going parallel!\n")
 		# LOOP and combine
-		lst0 <- foreach(j=1:it, 
+		lst0 <- foreach(j = it_blocks, 
 			.combine=function(...) {
 				list(
 					stk.om=do.call('combine', lapply(list(...), '[[', 'stk.om')),
@@ -88,7 +90,7 @@ mp <- function(om, oem=NULL, iem=NULL, ctrl, args, scenario="test", tracking="mi
 			.errorhandling = "stop", 
 			.inorder=TRUE) %dopar% {
 				# in case of parallel each core receives one iter
-				args$it <- 1
+				args$it <- length(j)
 				call0 <- list(
 					stk.om = stk.om[,,,,,j],
 					sr.om = FLCore::iter(sr.om,j),
