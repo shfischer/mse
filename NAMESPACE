@@ -45,8 +45,7 @@ export(
   "perfect.oem",
   "perfect.sa",
   "sampling.oem",
-  "tac.is",
-  "goFish")
+  "tac.is")
 
 exportClasses(
   "FLiem",

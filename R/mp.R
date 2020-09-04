@@ -104,7 +104,7 @@ mp <- function(om, oem=NULL, iem=NULL, ctrl, args, scenario="test", tracking="mi
 			# SUBSET object(s)
 			call0 <- list(
 				###stk.om = stk.om[,,,,,j],
-				stk.om = iter_attr(stk.om, j),
+				stk.om = mse:::iter_attr(stk.om, j),
 				sr.om = FLCore::iter(sr.om,j),
 				sr.om.res = sr.om.res[,,,,,j],
 				oem = iters(oem, j),

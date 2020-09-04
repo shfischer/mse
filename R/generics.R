@@ -94,3 +94,27 @@ setMethod(f = "combine_attr",
 
 
 
+### subset iter and keep attributes
+iter_attr <- function(object, iters, subset_attributes = TRUE) {
+  
+  ### subset object to iter
+  res <- FLCore::iter(object, iters)
+  
+  if (isTRUE(subset_attributes)) {
+    
+    ### get default attributes of object class
+    attr_def <- names(attributes(new(Class = class(object))))
+    
+    ### get additional attributes
+    attr_new <- setdiff(names(attributes(object)), attr_def)
+    
+    ### subset attributes
+    for (attr_i in attr_new) {
+      attr(res, attr_i) <- FLCore::iter(attr(res, attr_i), iters)
+    }
+    
+  }
+  
+  return(res)
+  
+}
