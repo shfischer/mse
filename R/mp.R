@@ -39,7 +39,7 @@
 #' plot(om, TEST=tes)
 
 mp <- function(om, oem=NULL, iem=NULL, ctrl, args, scenario="NA",
-  tracking="missing", verbose=TRUE, parallel=TRUE){
+  tracking="missing", verbose=TRUE, parallel=TRUE, cut_hist = FALSE, ...){
 
   dis <- dims(om)
   dmns <- dimnames(om)
@@ -137,7 +137,13 @@ mp <- function(om, oem=NULL, iem=NULL, ctrl, args, scenario="NA",
 	}
 
 	# PREPARE for parallel if needed
-  cores <- getDoParWorkers()
+  # cores <- getDoParWorkers()
+  # number of parallelisation blocks
+  if (!is.null(args$nblocks)) {
+    cores <- args$nblocks 
+  } else {
+    cores <- 1
+  }
 
 	if(isTRUE(parallel) & cores > 1) {
 
@@ -149,10 +155,11 @@ mp <- function(om, oem=NULL, iem=NULL, ctrl, args, scenario="NA",
  		  .combine=.combinegoFish,
 			.packages="mse", 
 			.multicombine=TRUE, 
-			.errorhandling = "remove", 
+			.errorhandling = "stop", 
 			.inorder=TRUE) %dopar% {
 
-				call0 <- list(
+			  args$it <- length(j)
+			  call0 <- list(
           om = iter(om, j),
 					oem = iter(oem, j),
           tracking = iter(tracking, j),
@@ -161,7 +168,8 @@ mp <- function(om, oem=NULL, iem=NULL, ctrl, args, scenario="NA",
 					iem=iem,  # TODO needs it selection
 					ctrl= iters(ctrl, j),
 					args=c(args[!names(args) %in% "it"], it=length(j)),
-					verbose=verbose)
+					verbose=verbose,
+					cut_hist = cut_hist)
 				
         out <- do.call(goFish, call0)
         
@@ -182,7 +190,8 @@ mp <- function(om, oem=NULL, iem=NULL, ctrl, args, scenario="NA",
 				iem=iem,
 				ctrl=ctrl,
 				args=args,
-				verbose=verbose)
+				verbose=verbose,
+				cut_hist = cut_hist)
 			
       out <- do.call(goFish, call0)
 
@@ -212,7 +221,8 @@ setGeneric("goFish", function(om, ...) standardGeneric("goFish"))
 # goFish FLom {{{
 
 setMethod("goFish", signature(om="FLom"),
-  function(om, fb, projection, oem, iem, tracking, ctrl, args, verbose) {
+  function(om, fb, projection, oem, iem, tracking, ctrl, args, verbose, 
+           cut_hist, ...) {
   
   it <- args$it     # number of iterations
 	y0 <- args$y0     # initial data year
@@ -238,11 +248,11 @@ setMethod("goFish", signature(om="FLom"),
 
     # args
     ay <- args$ay <- an(i)
-		dy <- args$dy <- ay - dlag
-    dys <- seq(ay - dlag - frq + 1, ay - dlag)
-    dy0 <- dys[1]
-    dyf <- dys[frq]
-    mys <- seq(ay + mlag, ay + mlag + frq - 1)
+		dy <- ay#args$dy <- ay - dlag
+    dys <- ay#seq(ay - dlag - frq + 1, ay - dlag)
+    dy0 <- ay#dys[1]
+    dyf <- ay#dys[frq]
+    mys <- ay#seq(ay + mlag, ay + mlag + frq - 1)
     
     # years for status quo computations 
 		sqy <- args$sqy <- ac(seq(ay - nsqy - dlag + 1, dy))
@@ -484,10 +494,14 @@ setMethod("goFish", signature(om="FLom"),
   track(tracking, "SB.om", mys) <- unitSums(ssb(om))[, ac(mys)]
   track(tracking, "C.om", mys) <- unitSums(catch(om))[, ac(mys)]
   
-    # RETURN
-	list(om=window(om, start=iy, end=fy), tracking=window(tracking, end=fy),
-    oem=oem, args=args)
-  } 
+  # RETURN
+  if (isTRUE(cut_hist)) {
+    om <- window(om, start = iy) # window(om, start = iy, end = fy)
+    # tracking <- window(tracking, end = fy)
+  }
+  list(om = om, tracking = tracking,
+       oem = oem, args = args)
+  }
 )
 # }}}
 
