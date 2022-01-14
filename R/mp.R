@@ -158,7 +158,6 @@ mp <- function(om, oem=NULL, iem=NULL, ctrl, args, scenario="NA",
 			.errorhandling = "stop", 
 			.inorder=TRUE) %dopar% {
 
-			  args$it <- length(j)
 			  call0 <- list(
           om = iter(om, j),
 					oem = iter(oem, j),
