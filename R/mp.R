@@ -353,12 +353,12 @@ setMethod("goFish", signature(om="FLom"),
 
 		if (!is.null(ctrl0$hcr)){
 			
-      ctrl.hcr <- args(ctrl0$hcr)
+		  ctrl.hcr <- args(ctrl0$hcr)
 			ctrl.hcr$method <- method(ctrl0$hcr)
 			ctrl.hcr$stk <- stk0
 			ctrl.hcr$args <- args #ay <- ay
 			ctrl.hcr$tracking <- tracking
-      ctrl.hcr$ind <- ind
+      ctrl.hcr$ind <- if (exists("ind")) ind else FLQuants()
 
       # TODO REVIEW interface
 			if(exists("hcrpars")) ctrl.hcr$hcrpars <- hcrpars
