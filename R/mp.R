@@ -43,7 +43,7 @@ options(doFuture.rng.onMisuse = "ignore")
 
 mp <- function(om, oem=NULL, iem=NULL, control=ctrl, ctrl=control, args,
   scenario="NA", tracking="missing", logfile=tempfile(), verbose=TRUE,
-  parallel=TRUE){
+  parallel=TRUE, cut_hist = FALSE){
 
   # dims & dimnames
   if(is(om, 'list')) {
@@ -168,6 +168,8 @@ mp <- function(om, oem=NULL, iem=NULL, control=ctrl, ctrl=control, args,
   if(is.numeric(parallel)) {
     cores <- parallel
     parallel <- TRUE
+  } else if (!is.null(args$nblocks)) {
+    cores <- args$nblocks
   # TAKEN from doPar
   } else if(getDoParRegistered()) {
     cores <- getDoParWorkers()
@@ -187,7 +189,7 @@ mp <- function(om, oem=NULL, iem=NULL, control=ctrl, ctrl=control, args,
       .packages="mse", 
       .combine=.combinegoFish,
       .multicombine=TRUE, 
-      .errorhandling = "remove", 
+      .errorhandling = "stop", 
       .inorder=TRUE) %dopar% {
 
         call0 <- list(
@@ -199,7 +201,8 @@ mp <- function(om, oem=NULL, iem=NULL, control=ctrl, ctrl=control, args,
           iem=iem,  # TODO needs it selection
           ctrl= iter(ctrl, j),
           args=c(args[!names(args) %in% "it"], it=length(j)),
-          verbose=verbose, logfile=logfile)
+          verbose=verbose, logfile=logfile,
+          cut_hist = cut_hist)
 
         out <- do.call(goFish, call0)
 
@@ -219,7 +222,8 @@ mp <- function(om, oem=NULL, iem=NULL, control=ctrl, ctrl=control, args,
         iem=iem,
         ctrl=ctrl,
         args=args,
-        verbose=verbose, logfile=logfile)
+        verbose=verbose, logfile=logfile,
+        cut_hist = cut_hist)
 
       out <- do.call(goFish, call0)
 
@@ -250,7 +254,7 @@ mp <- function(om, oem=NULL, iem=NULL, control=ctrl, ctrl=control, args,
 
 setMethod("goFish", signature(om="FLom"),
   function(om, fb, projection, oem, iem, tracking, logfile, ctrl, args,
-    verbose) {
+    verbose, cut_hist) {
 
   # ARGUMENTS
   it <- args$it     # number of iterations
@@ -586,7 +590,11 @@ setMethod("goFish", signature(om="FLom"),
   track(tracking, "C.om", fys) <- unitSums(catch(om))[, ac(fys)]
 
   # RETURN
-  list(om=window(om, start=iy, end=fy), tracking=window(tracking, end=fy),
+  if (isTRUE(cut_hist)) {
+    om <- window(om, start = iy, end = fy)
+    tracking <- window(tracking, end = fy)
+  }
+  list(om=om, tracking=tracking,
     oem=oem, args=args)
   } 
 )
