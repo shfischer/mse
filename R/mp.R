@@ -235,11 +235,9 @@ mp <- function(om, oem=NULL, iem=NULL, control=ctrl, ctrl=control, args,
     stop("goFish returned no results")
 
   # GET objects back from loop, up to last projected year
-  if (isTRUE(cut_hist)) {
-    om <- window(lst0$om, end=vy[length(vy)])
-    oem <- window(lst0$oem, end=vy[length(vy)])
-    tracking <- window(lst0$tracking, start=iy, end=vy[length(vy)])
-  }
+  om <- window(lst0$om, end=fy)
+  oem <- window(lst0$oem, end=fy)
+  tracking <- window(lst0$tracking, start=iy, end=fy)
 
   if(verbose) cat("\n")
 
