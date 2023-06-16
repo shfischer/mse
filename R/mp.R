@@ -381,6 +381,9 @@ setMethod("goFish", signature(om="FLom"),
           out.assess$args
       }
       tracking <- out.assess$tracking
+    } else {
+      ### empty indicator
+      ind <- FLQuants()
     }
 
     # TODO: DO NOT WRITE if ind
