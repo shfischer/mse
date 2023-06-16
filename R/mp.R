@@ -43,7 +43,7 @@ options(doFuture.rng.onMisuse = "ignore")
 
 mp <- function(om, oem=NULL, iem=NULL, control=ctrl, ctrl=control, args,
   scenario="NA", tracking="missing", logfile=tempfile(), verbose=TRUE,
-  parallel=TRUE, cut_hist = FALSE){
+  parallel=TRUE, cut_hist = FALSE, ...){
 
   # dims & dimnames
   if(is(om, 'list')) {
