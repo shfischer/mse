@@ -59,7 +59,7 @@ mp <- function(om, oem=NULL, iem=NULL, control=ctrl, ctrl=control, args,
 
   # APPLY recursively to om list
   if(is(om, 'list')) {
-    res <- foreach(i=seq(length(om)), .combine="c") %dofuture% {
+    res <- foreach(i=seq(length(om)), .combine="c") %dopar% {
       mp(om[[i]], oem=oem, iem=iem,     
         control=control, args=args, scenario=scenario, tracking=tracking, 
         logfile=logfile, verbose=verbose, parallel=parallel)
@@ -202,8 +202,7 @@ mp <- function(om, oem=NULL, iem=NULL, control=ctrl, ctrl=control, args,
       .combine=.combinegoFish,
       .multicombine=TRUE, 
       .errorhandling = "remove", 
-      .options.future=list(globals=structure(TRUE, seed=seed)),
-      .inorder=TRUE) %dofuture% {
+      .inorder=TRUE) %dopar% {
       
         call0 <- list(
           om = iter(om, j),
@@ -1008,9 +1007,7 @@ mps <- function(om, oem=NULL, iem=NULL, ctrl, args, names=NULL, parallel=TRUE,
 
     p <- progressor(along=seq(largs), offset=0L)
 
-    res <- foreach(i = seq(largs), .errorhandling="pass",
-      .options.future=list(globals=structure(TRUE, add=c("ctrl", "module",
-      "mopts", "om", "oem", "iem", "args"), seed=seed))) %dofuture% {
+    res <- foreach(i = seq(largs), .errorhandling="pass") %dopar% {
 
       # MODIFY module args
       args(ctrl[[module]])[names(mopts)] <- lapply(mopts, "[", i)
